@@ -55,7 +55,7 @@ def lambda_handler(event, context):
         received_text = event.message.text
         output_text = handle_text(received_text)
 
-        table.put_item(
+        shift_table.put_item(
             Item={
                 "user": "dns.google.com",
                 "date": 1
