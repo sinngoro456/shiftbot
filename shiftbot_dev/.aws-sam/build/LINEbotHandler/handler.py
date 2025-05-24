@@ -34,7 +34,7 @@ def get_jst_date():
     return now.strftime("%Y%m%d")
 
 
-def handler(event, context):
+def lambda_handler(event, context):
     # 署名検証用のヘッダーとボディを取得
     signature = event["headers"]["x-line-signature"]
     body = event["body"]

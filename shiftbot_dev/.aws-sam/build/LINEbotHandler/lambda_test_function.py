@@ -1,4 +1,4 @@
-from handler import handler
+from handler import lambda_handler
 from main import handle_text
 import json
 
