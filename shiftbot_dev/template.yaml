@@ -7,7 +7,7 @@ Resources:
         - Stack ${AWS::StackName} Function ${ResourceName}
         - ResourceName: LINEbotAuthorizer
       CodeUri: LINEbotAuthorizer
-      Handler: handler
+      Handler: handler.handler
       Runtime: python3.13
       MemorySize: 3008
       Timeout: 30
@@ -24,7 +24,7 @@ Resources:
         - Stack ${AWS::StackName} Function ${ResourceName}
         - ResourceName: LINEbotHandler
       CodeUri: LINEbotHandler
-      Handler: handler
+      Handler: handler.handler
       Runtime: python3.13
       MemorySize: 3008
       Timeout: 30
