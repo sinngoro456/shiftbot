@@ -5,10 +5,11 @@ from linebot.models import MessageEvent, TextMessage, TextSendMessage  # 追加�
 from linebot.exceptions import InvalidSignatureError
 from main import handle_text
 import boto3
+import datetime
 
 def get_jst_date():
     """日本時間の日付をYYYYMMDD形式で取得"""
-    return datetime.now(timezone(timedelta(hours=9))).strftime("%Y%m%d")
+    return datetime.now(datetime.timezone(datetime.timedelta(hours=9))).strftime("%Y%m%d")
 
 logger = logging.getLogger()
 logger.setLevel(logging.ERROR)
@@ -26,7 +27,7 @@ if not channel_secret or not channel_access_token:
 line_bot_api = LineBotApi(channel_access_token)
 webhook_handler = WebhookHandler(channel_secret)
 dynamodb = boto3.resource("dynamodb")
-shift_table = dynamodb.Table("shiftbot-dev-Shift-1CMYV3XUZ1PQ5")
+shift_table = dynamodb.Table("Request")
 
 def lambda_handler(event, context):
     # 署名検証用のヘッダーとボディを取得
