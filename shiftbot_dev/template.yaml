@@ -1,0 +1,113 @@
+Transform: AWS::Serverless-2016-10-31
+Resources:
+  LINEbotAuthorizer:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: !Sub
+        - Stack ${AWS::StackName} Function ${ResourceName}
+        - ResourceName: LINEbotAuthorizer
+      CodeUri: LINEbotAuthorizer
+      Handler: handler
+      Runtime: python3.13
+      MemorySize: 3008
+      Timeout: 30
+      Tracing: Active
+  LINEbotAuthorizerLogGroup:
+    Type: AWS::Logs::LogGroup
+    DeletionPolicy: Retain
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${LINEbotAuthorizer}
+  LINEbotHandler:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: !Sub
+        - Stack ${AWS::StackName} Function ${ResourceName}
+        - ResourceName: LINEbotHandler
+      CodeUri: LINEbotHandler
+      Handler: handler
+      Runtime: python3.13
+      MemorySize: 3008
+      Timeout: 30
+      Tracing: Active
+      Environment:
+        Variables:
+          TABLE_TABLE_NAME_2: !Ref Request
+          TABLE_TABLE_ARN_2: !GetAtt Request.Arn
+          LINE_CHANNEL_SECRET: 33e3a797807bd290b0a2f1bb6cef5e62
+          LINE_CHANNEL_ACCESS_TOKEN: GliPtKIV8wubCOnS1htwiXCo0Sb17KB8cqYzX56NTP6vAs0LsiouIXHpRXoXzU//QqIZFJzYiaayPDD5bz8wiSde8ah+3fjMvdWqWduQyMalyRySJZRB12DDAIxHrAX6vRtgvvKND8lxGwrupSkDggdB04t89/1O/w1cDnyilFU=
+          SHIFT_TABLE_NAME: !Ref Shift
+          SHIFT_TABLE_ARN: !GetAtt Shift.Arn
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref Request
+        - DynamoDBCrudPolicy:
+            TableName: !Ref Shift
+        - DynamoDBCrudPolicy:
+            TableName: !Ref Request
+      Events:
+        ShiftbotApiPOST:
+          Type: Api
+          Properties:
+            Path: /
+            Method: POST
+            RestApiId: !Ref ShiftbotApi
+  LINEbotHandlerLogGroup:
+    Type: AWS::Logs::LogGroup
+    DeletionPolicy: Retain
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${LINEbotHandler}
+  Request:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: user
+          AttributeType: S
+        - AttributeName: date
+          AttributeType: 'N'
+      BillingMode: PAY_PER_REQUEST
+      KeySchema:
+        - AttributeName: user
+          KeyType: HASH
+        - AttributeName: date
+          KeyType: RANGE
+      StreamSpecification:
+        StreamViewType: NEW_AND_OLD_IMAGES
+  Shift:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: date
+          AttributeType: 'N'
+      BillingMode: PAY_PER_REQUEST
+      KeySchema:
+        - AttributeName: date
+          KeyType: HASH
+      StreamSpecification:
+        StreamViewType: NEW_AND_OLD_IMAGES
+  ShiftbotApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: !Sub
+        - ${ResourceName} From Stack ${AWS::StackName}
+        - ResourceName: ShiftbotApi
+      StageName: Prod
+      DefinitionBody:
+        openapi: '3.0'
+        info: {}
+        paths:
+          /:
+            post:
+              x-amazon-apigateway-integration:
+                httpMethod: POST
+                type: aws_proxy
+                uri: !Sub arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LINEbotHandler.Arn}/invocations
+              responses: {}
+      EndpointConfiguration: REGIONAL
+      TracingEnabled: true
+      Auth:
+        Authorizers:
+          LINEbotAuthorizer:
+            FunctionArn: !GetAtt LINEbotAuthorizer.Arn
+        DefaultAuthorizer: LINEbotAuthorizer
+      Cors:
+        MaxAge: 5
