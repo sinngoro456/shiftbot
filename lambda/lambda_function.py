@@ -4,6 +4,7 @@ from linebot import LineBotApi, WebhookHandler
 from linebot.models import MessageEvent, TextMessage, TextSendMessage  # 追加インポート
 from linebot.exceptions import InvalidSignatureError
 from main import handle_text
+import boto3
 
 logger = logging.getLogger()
 logger.setLevel(logging.ERROR)
@@ -14,10 +15,16 @@ channel_access_token = os.getenv("LINE_CHANNEL_ACCESS_TOKEN")
 
 if not channel_secret or not channel_access_token:
     logger.error("LINEチャネルのシークレットまたはアクセストークンが設定されていません")
-    raise ValueError("LINEチャネルのシークレットまたはアクセストークンが設定されていません")
+    raise ValueError(
+        "LINEチャネルのシークレットまたはアクセストークンが設定されていません"
+    )
 
 line_bot_api = LineBotApi(channel_access_token)
-handler = WebhookHandler(channel_secret)
+webhook_handler = WebhookHandler(channel_secret)
+dynamodb = boto3.resource("dynamodb")
+request_table = dynamodb.Table("shiftbot-dev-Request-UGV8CK1P5GSD")
+shift_table = dynamodb.Table("shiftbot-dev-Shift-1CMYV3XUZ1PQ5")
+
 
 def lambda_handler(event, context):
     # 署名検証用のヘッダーとボディを取得
@@ -29,7 +36,7 @@ def lambda_handler(event, context):
         "isBase64Encoded": False,
         "statusCode": 200,
         "headers": {},
-        "body": ""
+        "body": "",
     }
 
     # エラー時のレスポンス
@@ -37,22 +44,18 @@ def lambda_handler(event, context):
         "isBase64Encoded": False,
         "statusCode": 500,
         "headers": {},
-        "body": "Error"
+        "body": "Error",
     }
 
-    @handler.add(MessageEvent, message=TextMessage)
-    
+    @webhook_handler.add(MessageEvent, message=TextMessage)
     def handle_message(event):
         # 受信したメッセージをそのまま返信
         received_text = event.message.text
         output_text = handle_text(received_text)
-        line_bot_api.reply_message(
-            event.reply_token,
-            TextSendMessage(text=output_text)
-        )
-        
+        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=output_text))
+
     try:
-        handler.handle(body, signature)
+        webhook_handler.handle(body, signature)
     except InvalidSignatureError:
         return error_response
     except Exception as e:

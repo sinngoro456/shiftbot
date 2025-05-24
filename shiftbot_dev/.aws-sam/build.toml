@@ -14,7 +14,7 @@ codeuri = "c:\\prog\\Python\\Python_Github\\shiftbot\\shiftbot_dev\\LINEbotHandl
 runtime = "python3.13"
 architecture = "x86_64"
 handler = "handler"
-manifest_hash = "d41d8cd98f00b204e9800998ecf8427e"
+manifest_hash = "aae85759b709dde449e8acdd17eab156"
 packagetype = "Zip"
 functions = ["LINEbotHandler"]
 
