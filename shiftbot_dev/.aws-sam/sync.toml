@@ -2,7 +2,7 @@
 
 [sync_state]
 dependency_layer = false
-latest_infra_sync_time = "2025-05-24T16:08:54.473812"
+latest_infra_sync_time = "2025-05-24T17:01:41.614071"
 
 [resource_sync_states."ZipFunctionSyncFlow:LINEbotAuthorizer"]
 hash = "fdf5ac2e944bd7c2d08cccd34706a37f0a9c3432b65a182d3b506bed55a13592"
